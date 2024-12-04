@@ -1,0 +1,37 @@
+telegram_bot_token: "telegram_bot_token"
+
+openai:
+  api_key: "openai_api_key"
+
+database:
+  url: "database_url"
+
+smtp:
+  server: "smtp.gmail.com"              
+  port: 465                          
+  username: "mail"     
+  password: "pass"         
+  use_tls: False
+  from_email: "mail" 
+
+messages:
+    - "Как прошла твоя неделя?"
+    - "Расскажи о самом приятном и неприятном слуачи за последнюю неделю!"
+
+organization:
+  name: "Инновационные ТехноСолюшнс"
+  activity: "IT-консалтинг и разработка программного обеспечения"
+  emails:
+    - "savely.crylov@yandex.ru"
+    - "hellsingeride@gmail.com"
+  survey_schedule:
+    day_of_week: 2   
+    hour: 18              
+    minute: 13
+    frequency: "weekly"         
+
+  report_schedule:
+    day_of_week: 2
+    hour: 18
+    minute: 17
+    frequency: "weekly"
