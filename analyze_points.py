@@ -67,12 +67,10 @@ def parse_gpt4_response(response_text):
     try:
         response_json = json.loads(response_text)
         
-        # Получаем данные
         top_positive_data = response_json.get('positive', [])
         top_negative_data = response_json.get('negative', [])
         main_aspects_data = response_json.get('main', [])
         
-        # Сортировка по полю 'count' во всех списках
         top_positive_data = sorted(top_positive_data, key=lambda x: x.get('count', 0), reverse=True)
         top_negative_data = sorted(top_negative_data, key=lambda x: x.get('count', 0), reverse=True)
         main_aspects_data = sorted(main_aspects_data, key=lambda x: x.get('count', 0), reverse=True)
@@ -83,13 +81,43 @@ def parse_gpt4_response(response_text):
         logger.error(f'Ошибка при разборе JSON ответа от GPT-4: {e}')
         return [], [], []
 
-def send_email(org, excel_file_path, brief_excel_file_path):
+def send_email(org, excel_file_path, brief_excel_file_path, top_positive_data, top_negative_data, main_aspects_data):
     smtp_config = config['smtp']
     msg = EmailMessage()
     msg['Subject'] = f"Еженедельный отчёт для {org.name}"
     msg['From'] = smtp_config['from_email']
     msg['To'] = ', '.join([email.email_address for email in org.emails])
-    msg.set_content(f"Здравствуйте,\n\nВо вложении вы найдёте еженедельный отчёт для организации {org.name}.\n\nС уважением,\nВаш бот.")
+    
+    email_body = f"Здравствуйте,\n\nВо вложении вы найдёте еженедельный отчёт для организации {org.name}.\n\n"
+
+    if top_positive_data:
+        email_body += "Основные позитивные аспекты:\n"
+        for item in top_positive_data:
+            email_body += f"- {item['aspect']} (Количество: {item['count']}): {item['comment']}\n"
+        email_body += "\n"
+    else:
+        email_body += "Нет данных по позитивным аспектам.\n\n"
+        
+    if top_negative_data:
+        email_body += "Основные негативные аспекты:\n"
+        for item in top_negative_data:
+            email_body += f"- {item['aspect']} (Количество: {item['count']}): {item['comment']}\n"
+        email_body += "\n"
+    else:
+        email_body += "Нет данных по негативным аспектам.\n\n"
+        
+    if main_aspects_data:
+        email_body += "Главные аспекты деятельности компании:\n"
+        for item in main_aspects_data:
+            email_body += f"- {item['aspect']} (Количество: {item['count']}): {item['comment']}\n"
+        email_body += "\n"
+    else:
+        email_body += "Нет данных по главным аспектам.\n\n"
+        
+    email_body += "С уважением,\nВаш бот."
+
+    msg.set_content(email_body)
+
     try:
         with open(excel_file_path, 'rb') as f:
             file_data = f.read()
@@ -124,7 +152,6 @@ def send_email(org, excel_file_path, brief_excel_file_path):
 def generate_excel_report(org_id, start_date, end_date, top_positive_counts, top_negative_counts):
     session = SessionLocal()
     try:
-        # Извлекаем все ответы сотрудников за указанный период
         responses = (
             session.query(Response)
             .join(Response.employee)
@@ -142,8 +169,7 @@ def generate_excel_report(org_id, start_date, end_date, top_positive_counts, top
         
         data = []
         for response in responses:
-            # Используем вопрос из базы данных
-            question = response.question  # Вопрос теперь извлекается из поля question в таблице Response
+            question = response.question  
             data.append({
                 'Сотрудник': response.employee.name,
                 'Вопрос': question,
@@ -271,7 +297,14 @@ def analyze_points(org_id, days=7):
         if not brief_excel_file_path:
             logger.error('Не удалось сформировать краткий Excel-отчет.')
             return
-        send_email(org=organization, excel_file_path=excel_file_path, brief_excel_file_path=brief_excel_file_path)
+        send_email(
+            org=organization,
+            excel_file_path=excel_file_path,
+            brief_excel_file_path=brief_excel_file_path,
+            top_positive_data=top_positive_data,
+            top_negative_data=top_negative_data,
+            main_aspects_data=main_aspects_data
+        )
     except Exception as e:
         logger.error(f'Произошла ошибка: {e}')
     finally:
