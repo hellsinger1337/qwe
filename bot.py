@@ -55,6 +55,18 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"Вы успешно зарегистрированы в компании. Спасибо!"
     )
+    session.query(BotMessage).filter(BotMessage.employee_id == employee.id).delete()
+    session.commit()
+    survey_text = config['messages'][0]
+    await update.message.reply_text(survey_text)
+    logger.info(f"Отправлено опросное сообщение сотруднику {employee.name} (Telegram ID: {employee.telegram_id}).")
+    bot_message = BotMessage(
+                    employee_id=employee.id,
+                    message_text=survey_text
+                )
+    session.add(bot_message)
+    session.commit()
+
     logger.info(f"Новый сотрудник зарегистрирован: {employee.name} (ID: {employee.id})")
     session.close()
 
