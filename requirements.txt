@@ -9,4 +9,3 @@ numpy==1.24.3
 psycopg2-binary
 python-docx
 jinja2
-smtplib
