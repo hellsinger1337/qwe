@@ -24,12 +24,6 @@ openai.api_key = config['openai']['api_key']
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text('Привет! Я бот для сбора обратной связи.')
-    logger.info(f"Пользователь {update.effective_user.full_name} начал взаимодействие с ботом.")
-
-async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Обработка команды /register для регистрации пользователя.
-    """
     logger.info(f"Пользователь {update.effective_user.full_name} выполняет регистрацию.")
     session = SessionLocal()
     telegram_id = str(update.effective_user.id)
@@ -69,6 +63,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     logger.info(f"Новый сотрудник зарегистрирован: {employee.name} (ID: {employee.id})")
     session.close()
+    logger.info(f"Пользователь {update.effective_user.full_name} начал взаимодействие с ботом.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
