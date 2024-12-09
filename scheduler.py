@@ -1,4 +1,3 @@
-
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from database import SessionLocal
@@ -58,7 +57,7 @@ async def send_survey(org_id):
         session.close()
         logger.info(f"Задача send_survey для организации ID {org_id} завершена.")
 
-def run_analyze_points(org_id, days=7):
+def run_analyze_points(org_id, days):
     """
     Запускает анализ позитивных и негативных поинтов для организации.
     """
@@ -78,28 +77,37 @@ def start_scheduler():
     try:
         organizations = session.query(Organization).all()
         for org in organizations:
-            
-            survey_trigger = CronTrigger(
-                day_of_week=org.survey_day_of_week,
-                hour=org.survey_hour,
-                minute=org.survey_minute
-            )
+            if org.survey_frequency == 'weekly':
+                survey_trigger = CronTrigger(
+                    day_of_week=org.survey_day_of_week,
+                    hour=org.survey_hour,
+                    minute=org.survey_minute
+                )
+            elif org.survey_frequency == 'monthly':
+                survey_trigger = CronTrigger(
+                    day=org.survey_day_of_week,  
+                    hour=org.survey_hour,
+                    minute=org.survey_minute
+                )
             scheduler.add_job(send_survey, survey_trigger, args=[org.id], name=f"send_survey_org_{org.id}")
-
-            
-            report_trigger = CronTrigger(
-                day_of_week=org.report_day_of_week,
-                hour=org.report_hour,
-                minute=org.report_minute
-            )
-            scheduler.add_job(run_analyze_points, report_trigger, args=[org.id], name=f"run_analyze_points_org_{org.id}")
+            days=7
+            if org.report_frequency == 'weekly':
+                report_trigger = CronTrigger(
+                    day_of_week=org.report_day_of_week,
+                    hour=org.report_hour,
+                    minute=org.report_minute
+                )
+            elif org.report_frequency == 'monthly':
+                days=30
+                report_trigger = CronTrigger(
+                    day=org.report_day_of_week,  
+                    hour=org.report_hour,
+                    minute=org.report_minute
+                )
+            scheduler.add_job(run_analyze_points, report_trigger, args=[org.id,days], name=f"run_analyze_points_org_{org.id}")
             
             logger.info(f"Задачи для организации '{org.name}' (ID: {org.id}) добавлены в планировщик.")
     except Exception as e:
         logger.error(f"Ошибка при инициализации планировщика: {e}")
     finally:
         session.close()
-    
-    scheduler.start()
-    logger.info("Планировщик задач запущен.")
-    return scheduler
