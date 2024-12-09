@@ -88,35 +88,51 @@ def send_email(org, excel_file_path, brief_excel_file_path, top_positive_data, t
     msg['From'] = smtp_config['from_email']
     msg['To'] = ', '.join([email.email_address for email in org.emails])
     
-    email_body = f"Здравствуйте,\n\nВо вложении вы найдёте еженедельный отчёт для организации {org.name}.\n\n"
-
+    # Создание HTML тела письма
+    email_body = f"""
+    <html>
+    <body>
+        <p>Здравствуйте,</p>
+        <p>Во вложении вы найдёте еженедельный отчёт для организации <b>{org.name}</b>.</p>
+    """
+    
     if top_positive_data:
-        email_body += "Основные позитивные аспекты:\n"
+        email_body += "<h3>Основные позитивные аспекты:</h3>"
+        email_body += "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+        email_body += "<tr><th>Аспект</th><th>Количество</th><th>Комментарий</th></tr>"
         for item in top_positive_data:
-            email_body += f"- {item['aspect']} (Количество: {item['count']}): {item['comment']}\n"
-        email_body += "\n"
+            email_body += f"<tr><td>{item['aspect']}</td><td>{item['count']}</td><td>{item['comment']}</td></tr>"
+        email_body += "</table><br>"
     else:
-        email_body += "Нет данных по позитивным аспектам.\n\n"
+        email_body += "<p>Нет данных по позитивным аспектам.</p>"
         
     if top_negative_data:
-        email_body += "Основные негативные аспекты:\n"
+        email_body += "<h3>Основные негативные аспекты:</h3>"
+        email_body += "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+        email_body += "<tr><th>Аспект</th><th>Количество</th><th>Комментарий</th></tr>"
         for item in top_negative_data:
-            email_body += f"- {item['aspect']} (Количество: {item['count']}): {item['comment']}\n"
-        email_body += "\n"
+            email_body += f"<tr><td>{item['aspect']}</td><td>{item['count']}</td><td>{item['comment']}</td></tr>"
+        email_body += "</table><br>"
     else:
-        email_body += "Нет данных по негативным аспектам.\n\n"
+        email_body += "<p>Нет данных по негативным аспектам.</p>"
         
     if main_aspects_data:
-        email_body += "Главные аспекты деятельности компании:\n"
+        email_body += "<h3>Главные аспекты деятельности компании:</h3>"
+        email_body += "<table border='1' style='border-collapse: collapse; width: 100%;'>"
+        email_body += "<tr><th>Аспект</th><th>Количество</th><th>Комментарий</th></tr>"
         for item in main_aspects_data:
-            email_body += f"- {item['aspect']} (Количество: {item['count']}): {item['comment']}\n"
-        email_body += "\n"
+            email_body += f"<tr><td>{item['aspect']}</td><td>{item['count']}</td><td>{item['comment']}</td></tr>"
+        email_body += "</table><br>"
     else:
-        email_body += "Нет данных по главным аспектам.\n\n"
-        
-    email_body += "С уважением,\nВаш бот."
-
-    msg.set_content(email_body)
+        email_body += "<p>Нет данных по главным аспектам.</p>"
+    
+    email_body += """
+        <p>С уважением,<br>Ваш бот.</p>
+    </body>
+    </html>
+    """
+    msg.set_content("Ваш почтовый клиент не поддерживает HTML.")
+    msg.add_alternative(email_body, subtype='html')
 
     try:
         with open(excel_file_path, 'rb') as f:
