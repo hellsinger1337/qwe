@@ -11,20 +11,21 @@ class Organization(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
     activity = Column(String, nullable=False) 
+    telegram_bot_token = Column(String, nullable=False)
 
-    
     survey_day_of_week = Column(Integer)
     survey_hour = Column(Integer)
     survey_minute = Column(Integer)
-    survey_frequency = Column(String, default='weekly')  # 'weekly' или 'monthly'
-    
+    survey_frequency = Column(String, default='weekly') 
+
     report_day_of_week = Column(Integer)
     report_hour = Column(Integer)
     report_minute = Column(Integer)
-    report_frequency = Column(String, default='weekly')  # 'weekly' или 'monthly'      
+    report_frequency = Column(String, default='weekly')
 
     employees = relationship("Employee", back_populates="organization")
-    emails = relationship("Email", back_populates="organization", cascade="all, delete-orphan")  
+    emails = relationship("Email", back_populates="organization", cascade="all, delete-orphan")
+    messages = relationship("OrganizationMessage", back_populates="organization", cascade="all, delete-orphan", order_by="OrganizationMessage.order")
 
 class Email(Base):
     __tablename__ = 'emails'
@@ -77,3 +78,11 @@ class NegativePoint(Base):
     point_text = Column(String)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)  
     response = relationship("Response", back_populates="negative_points")
+
+class OrganizationMessage(Base):
+    __tablename__ = 'organization_messages'
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=False)
+    message_text = Column(String, nullable=False)
+    order = Column(Integer, nullable=False)
+    organization = relationship("Organization", back_populates="messages")
