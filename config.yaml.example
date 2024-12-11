@@ -12,21 +12,19 @@ smtp:
   use_tls: False
   from_email: "mail" 
 
-messages:
-    - "Как прошла твоя неделя?"
-    - "Расскажи о самом приятном и неприятном слуачи за последнюю неделю!"
-
 organizations:
   - name: "Инновационные ТехноСолюшнс"
     activity: "IT-консалтинг и разработка программного обеспечения"
-    telegram_bot_token: "telegram_bot_token_org_1"
+    telegram_bot_token: "token1"
     emails:
-      - "savely.crylov@yandex.ru"
-      - "hellsingeride@gmail.com"
+      - "example1@org1.com"
+    messages:
+      - "Как прошла твоя неделя?"
+      - "Расскажи о самом приятном и неприятном случае за последнюю неделю!"
     survey_schedule:
       day_of_week: 2
       hour: 18
-      minute: 13
+      minute: 04
       frequency: "weekly"
     report_schedule:
       day_of_week: 2
@@ -36,9 +34,12 @@ organizations:
 
   - name: "ВебАналитикСервис"
     activity: "Веб-аналитика и маркетинг"
-    telegram_bot_token: "telegram_bot_token_org_2"
+    telegram_bot_token: "token2"
     emails:
-      - "example@webanalytic.com"
+      - "example2@org2.com"
+    messages:
+      - "Как прошел ваш месяц?"
+      - "Что можно улучшить в работе?"
     survey_schedule:
       day_of_week: 3
       hour: 10
