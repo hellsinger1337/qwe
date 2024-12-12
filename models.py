@@ -30,7 +30,7 @@ class Organization(Base):
 class Email(Base):
     __tablename__ = 'emails'
     id = Column(Integer, primary_key=True, index=True)
-    email_address = Column(String, unique=True, nullable=False)
+    email_address = Column(String, nullable=False)
     organization_id = Column(Integer, ForeignKey('organizations.id'), nullable=False)
     organization = relationship("Organization", back_populates="emails")
 
