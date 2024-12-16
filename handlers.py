@@ -87,16 +87,16 @@ async def message_handler(message: Message, org_id: int):
         session.close()
         return
 
-    # Определяем текущий и следующий вопрос
+    
     if last_bot_message and last_bot_message.message_text in questions:
         current_index = questions.index(last_bot_message.message_text)
         next_index = current_index + 1
         next_question = questions[next_index] if next_index < len(questions) else None
     else:
-        # Если нет последнего вопроса или он не из списка, начинаем с первого
+        
         next_question = questions[0] if questions else None
 
-    # Сохраняем ответ
+    
     response = Response(
         employee_id=employee.id,
         response_text=message.text,
@@ -104,8 +104,33 @@ async def message_handler(message: Message, org_id: int):
     )
     session.add(response)
     session.commit()
-
-    # Анализ ответа через OpenAI (код без изменений)
+    if last_bot_message and last_bot_message.message_text in questions:
+        current_index = questions.index(last_bot_message.message_text)
+        next_index = current_index + 1
+        if next_index < len(questions):
+            next_q = questions[next_index]
+            await message.answer(next_q)
+            new_msg = BotMessage(employee_id=employee.id, message_text=next_q)
+            session.add(new_msg)
+        else:
+            final_msg = "Пока вопросы закончились! Спасибо за участие в опросе!"
+            await message.answer(final_msg)
+            new_msg = BotMessage(employee_id=employee.id, message_text=final_msg)
+            session.add(new_msg)
+        session.commit()
+    else:
+        if next_question and next_question != response.question:
+            await message.answer(next_question)
+            new_msg = BotMessage(employee_id=employee.id, message_text=next_question)
+            session.add(new_msg)
+            session.commit()
+        else:
+            final_msg = "Пока вопросы закончились! Спасибо за участие!"
+            await message.answer(final_msg)
+            new_msg = BotMessage(employee_id=employee.id, message_text=final_msg)
+            session.add(new_msg)
+            session.commit()
+    
     prompt = (
         "Раздели следующий текст на положительные и отрицательные моменты. "
         "Представь их в виде списка с плюсами и минусами:\n\n"
@@ -135,37 +160,6 @@ async def message_handler(message: Message, org_id: int):
         session.commit()
     except Exception as e:
         logger.error(f"Ошибка OpenAI: {e}")
-        await message.answer("Произошла ошибка при обработке ответа. Повторите позже.")
-
-    # Переход к следующему вопросу
-    if last_bot_message and last_bot_message.message_text in questions:
-        # Был предыдущий вопрос
-        current_index = questions.index(last_bot_message.message_text)
-        next_index = current_index + 1
-        if next_index < len(questions):
-            next_q = questions[next_index]
-            await message.answer(next_q)
-            new_msg = BotMessage(employee_id=employee.id, message_text=next_q)
-            session.add(new_msg)
-        else:
-            final_msg = "Пока вопросы закончились! Спасибо за участие в опросе!"
-            await message.answer(final_msg)
-            new_msg = BotMessage(employee_id=employee.id, message_text=final_msg)
-            session.add(new_msg)
-        session.commit()
-    else:
-        # Если это первый ответ без предыдущего вопроса
-        if next_question and next_question != response.question:
-            await message.answer(next_question)
-            new_msg = BotMessage(employee_id=employee.id, message_text=next_question)
-            session.add(new_msg)
-            session.commit()
-        else:
-            final_msg = "Пока вопросы закончились! Спасибо за участие!"
-            await message.answer(final_msg)
-            new_msg = BotMessage(employee_id=employee.id, message_text=final_msg)
-            session.add(new_msg)
-            session.commit()
 
     session.close()
 
