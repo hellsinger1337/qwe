@@ -30,16 +30,15 @@ async def start_command_handler(message: Message, org_id: int):
         else:
             await message.answer("Вы уже зарегистрированы в этой организации.")
         session.close()
-        return
-
-    employee = Employee(
-        telegram_id=telegram_id,
-        name=message.from_user.full_name,
-        organization_id=org_id,
-    )
-    session.add(employee)
-    session.commit()
-    session.refresh(employee)
+    else:
+        employee = Employee(
+            telegram_id=telegram_id,
+            name=message.from_user.full_name,
+            organization_id=org_id,
+        )
+        session.add(employee)
+        session.commit()
+        session.refresh(employee)
 
     await message.answer(f"Вы успешно зарегистрированы в компании (ID: {org_id}). Спасибо!")
     session.query(BotMessage).filter(BotMessage.employee_id == employee.id).delete()
